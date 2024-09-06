@@ -59,6 +59,9 @@
                     const data = await response.json();
                     const eligibilityData = data.result?.data || {};
 
+                    // Cek untuk sybil
+                    const sybilDetected = Object.keys(eligibilityData).some(key => key.toLowerCase().includes('sybil'));
+
                     // Cek eligibility dan buat card hasil
                     let card = document.createElement('div');
                     card.classList.add('card', 'result-card', 'position-relative');
@@ -66,12 +69,19 @@
                     // Tombol close/dismiss
                     let closeBtn = document.createElement('span');
                     closeBtn.innerHTML = '&times;';
-                    closeBtn.classList.add('close-btn', 'text-white');
+                    closeBtn.classList.add('close-btn', 'text-dark');
                     closeBtn.addEventListener('click', function() {
                         card.remove();
                     });
 
-                    if (Object.keys(eligibilityData).length > 0) {
+                    if (sybilDetected) {
+                        card.innerHTML = `
+                            <div class="card-body bg-warning text-dark">
+                                <h5 class="card-title"><i class="fas fa-exclamation-triangle"></i> Detected as Sybil!</h5>
+                                <p class="card-text"><b>Address:</b> ${wallet}<br>Warning: Detected as Sybil.</p>
+                            </div>
+                        `;
+                    } else if (Object.keys(eligibilityData).length > 0) {
                         const totalGrass = Object.values(eligibilityData).reduce((sum, val) => sum + val, 0);
                         card.innerHTML = `
                             <div class="card-body bg-success text-white">
@@ -98,7 +108,7 @@
                     let errorCard = document.createElement('div');
                     errorCard.classList.add('card', 'result-card', 'position-relative');
                     errorCard.innerHTML = `
-                        <div class="card-body bg-warning">
+                        <div class="card-body bg-warning text-dark">
                             <h5 class="card-title"><i class="fas fa-exclamation-triangle"></i> Error!</h5>
                             <p class="card-text">Something went wrong while checking <b>${wallet}</b>. Please try again later.</p>
                         </div>
