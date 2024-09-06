@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Check Airdrop Eligibility</title>
+    <!-- Bootswatch Zephyr -->
+    <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.0/dist/zephyr/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome -->
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <style>
+        body {
+            padding: 2rem;
+        }
+        .result-card {
+            margin-top: 1rem;
+        }
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center mb-4"><i class="fas fa-coins"></i> $GRASS Airdrop Eligibility Checker</h1>
+        <div class="mb-3">
+            <label for="wallets" class="form-label">Input Wallet Addresses (one per line):</label>
+            <textarea class="form-control" id="wallets" rows="6" placeholder="Enter wallet addresses here..."></textarea>
+        </div>
+        <button id="checkEligibility" class="btn btn-primary"><i class="fas fa-check"></i> Check Eligibility</button>
+
+        <!-- Card untuk menampilkan hasil -->
+        <div id="result" class="mt-4"></div>
+    </div>
+
+    <script>
+        // Event listener untuk tombol 'Check Eligibility'
+        document.getElementById('checkEligibility').addEventListener('click', async function() {
+            const walletAddresses = document.getElementById('wallets').value.trim().split("\n").filter(addr => addr.trim() !== "");
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = ""; // Bersihkan hasil sebelumnya
+
+            if (walletAddresses.length === 0) {
+                resultDiv.innerHTML = `<div class="alert alert-warning">Please input at least one wallet address!</div>`;
+                return;
+            }
+            
+            // Loop melalui setiap wallet address
+            for (let i = 0; i < walletAddresses.length; i++) {
+                const wallet = walletAddresses[i].trim();
+
+                try {
+                    // Memanggil API untuk setiap wallet address
+                    const response = await fetch(`https://api.getgrass.io/airdropAllocations?input={"walletAddress":"${wallet}"}`);
+                    const data = await response.json();
+                    const eligibilityData = data.result?.data || {};
+
+                    // Cek eligibility dan buat card hasil
+                    let card = document.createElement('div');
+                    card.classList.add('card', 'result-card', 'position-relative');
+
+                    // Tombol close/dismiss
+                    let closeBtn = document.createElement('span');
+                    closeBtn.innerHTML = '&times;';
+                    closeBtn.classList.add('close-btn', 'text-white');
+                    closeBtn.addEventListener('click', function() {
+                        card.remove();
+                    });
+
+                    if (Object.keys(eligibilityData).length > 0) {
+                        const totalGrass = Object.values(eligibilityData).reduce((sum, val) => sum + val, 0);
+                        card.innerHTML = `
+                            <div class="card-body bg-success text-white">
+                                <h5 class="card-title"><i class="fas fa-check-circle"></i> Eligible!</h5>
+                                <p class="card-text"><b>Address:</b> ${wallet}<br><b>Total:</b> ${totalGrass.toFixed(2)} $GRASS</p>
+                            </div>
+                        `;
+                    } else {
+                        card.innerHTML = `
+                            <div class="card-body bg-danger text-white">
+                                <h5 class="card-title"><i class="fas fa-times-circle"></i> Not Eligible</h5>
+                                <p class="card-text"><b>Address:</b> ${wallet}</p>
+                            </div>
+                        `;
+                    }
+
+                    // Append tombol close ke card
+                    card.appendChild(closeBtn);
+
+                    // Append hasil ke result div
+                    resultDiv.appendChild(card);
+
+                } catch (error) {
+                    let errorCard = document.createElement('div');
+                    errorCard.classList.add('card', 'result-card', 'position-relative');
+                    errorCard.innerHTML = `
+                        <div class="card-body bg-warning">
+                            <h5 class="card-title"><i class="fas fa-exclamation-triangle"></i> Error!</h5>
+                            <p class="card-text">Something went wrong while checking <b>${wallet}</b>. Please try again later.</p>
+                        </div>
+                    `;
+
+                    // Tombol close/dismiss
+                    let closeBtn = document.createElement('span');
+                    closeBtn.innerHTML = '&times;';
+                    closeBtn.classList.add('close-btn', 'text-dark');
+                    closeBtn.addEventListener('click', function() {
+                        errorCard.remove();
+                    });
+
+                    errorCard.appendChild(closeBtn);
+
+                    resultDiv.appendChild(errorCard);
+                }
+            }
+        });
+    </script>
+</body>
+</html>
