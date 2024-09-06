@@ -7,6 +7,7 @@
 ## Features
 
 - Checks airdrop eligibility based on data from the Grass Foundation website.
+- Sybil Detection.
 - Simple and intuitive user interface.
 - Support for visualization with screenshots.
 
