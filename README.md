@@ -43,5 +43,6 @@ Start the application:
 py check.py
 ```
 Or Drag and the HTML File to your browser.
+Or Just Open This URL: [Here](https://naufaljct48.github.io/grass-checker/)
 
 Follow the instructions in the user interface to check airdrop eligibility.
